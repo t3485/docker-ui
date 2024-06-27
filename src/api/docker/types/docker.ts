@@ -4,6 +4,7 @@ export interface CreateOrUpdateContainerData {
   id?: string
   name: string
   image: string
+  network?: string
 }
 
 export interface GetContainerData {
@@ -31,3 +32,8 @@ export interface GetImageData {
 }
 
 export type GetImageResponseData = ApiResponseData<GetImageData[]>
+
+export interface UpdateContainerImageData {
+  name: string
+  file?: File
+}

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { type CreateOrUpdateContainerData, type GetImageData } from "@/api/docker/types/docker";
-import { getImageDataApi } from "@/api/docker"
-import { ref, watch } from "vue"
+import { CreateOrUpdateContainerData, GetImageData } from "@/api/docker/types/docker";
+import { ref } from "vue"
 import { type FormRules } from "element-plus"
 
 interface Props {
@@ -32,14 +31,6 @@ const formRules: FormRules<CreateOrUpdateContainerData> = {
 const handleClose = () => {
   emit("cancel")
 }
-
-watch(() => props.visible, (value, oldValue) => {
-  if (value) {
-    getImageDataApi().then((data) => {
-      imageData.value = data.data
-    })
-  }
-})
 
 </script>
 

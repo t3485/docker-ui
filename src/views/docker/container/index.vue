@@ -1,26 +1,16 @@
 <script lang="ts" setup>
-import { reactive, ref, watch } from "vue"
-import { getContainerDataApi, createContainerDataApi, updateContainerDataApi, deleteContainerDataApi } from "@/api/docker"
+import { reactive, ref, onMounted } from "vue"
+import { getContainerDataApi, createContainerDataApi, updateContainerDataApi, deleteContainerDataApi, updateContainerImageApi, startContainerDataApi, stopContainerDataApi, restartContainerDataApi, logContainerDataApi } from "@/api/docker"
 import { type GetContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
-import { type FormInstance, type FormRules, ElMessage, ElMessageBox } from "element-plus"
+import { type FormInstance, ElMessage, ElMessageBox } from "element-plus"
 import { Search, Refresh, CirclePlus, Delete, Download, RefreshRight } from "@element-plus/icons-vue"
-import { usePagination } from "@/hooks/usePagination"
-import { cloneDeep } from "lodash-es"
 import Create from "./components/create.vue"
+import UpdateFile from "./components/update-file.vue"
+import Log from "./components/log.vue"
 
 const loading = ref<boolean>(false)
-const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
-//#region 增
-const DEFAULT_FORM_DATA: CreateOrUpdateContainerData = {
-  id: undefined,
-  name: "",
-  image: ""
-}
 const createVisible = ref<boolean>(false)
-const dialogVisible = ref<boolean>(false)
-const formRef = ref<FormInstance | null>(null)
-const formData = ref<CreateOrUpdateContainerData>(cloneDeep(DEFAULT_FORM_DATA))
 const handleCreate = (data: CreateOrUpdateContainerData) => {
   createContainerDataApi(data).then(() => {
     ElMessage.success("操作成功")
@@ -31,41 +21,65 @@ const handleCreate = (data: CreateOrUpdateContainerData) => {
     loading.value = false
   })
 }
-const resetForm = () => {
-  formRef.value?.clearValidate()
-  formData.value = cloneDeep(DEFAULT_FORM_DATA)
-}
-//#endregion
 
-//#region 删
+const updateImageVisible = ref<boolean>(false)
+const handleUpdateImage = (data: CreateOrUpdateContainerData) => {
+  updateContainerDataApi(data).then(() => {
+    ElMessage.success("操作成功")
+    createVisible.value = false
+    getTableData()
+  })
+  .finally(() => {
+    loading.value = false
+  })
+}
+
 const handleDelete = (row: GetContainerData) => {
-  ElMessageBox.confirm(`正在删除用户：${row.name}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除：${row.name}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
   }).then(() => {
-    deleteContainerDataApi(row.id).then(() => {
+    deleteContainerDataApi(row.name).then(() => {
       ElMessage.success("删除成功")
       getTableData()
     })
   })
 }
-//#endregion
 
-//#region 改
-const handleUpdate = (row: GetContainerData) => {
-  dialogVisible.value = true
-  formData.value = cloneDeep(row)
+const handleStart = (row: GetContainerData) => {
+  startContainerDataApi(row.name).then(() => {
+    ElMessage.success("启动成功")
+    getTableData()
+  })
 }
-//#endregion
+
+const handleStop = (row: GetContainerData) => {
+  stopContainerDataApi(row.name).then(() => {
+    ElMessage.success("停止成功")
+    getTableData()
+  })
+}
+
+const handleRestart = (row: GetContainerData) => {
+  restartContainerDataApi(row.name).then(() => {
+    ElMessage.success("重启成功")
+    getTableData()
+  })
+}
+
+const logContainerVisible = ref<boolean>(false)
+const handleLog = (row: GetContainerData) => {
+  logContainerDataApi(row.name, true, false).then(() => {
+    logContainerVisible.value = true
+  })
+}
+
 
 //#region 查
 const tableData = ref<GetContainerData[]>([])
 const searchFormRef = ref<FormInstance | null>(null)
-const searchData = reactive({
-  username: "",
-  phone: ""
-})
+
 const getTableData = () => {
   loading.value = true
   getContainerDataApi()
@@ -79,35 +93,21 @@ const getTableData = () => {
       loading.value = false
     })
 }
-const handleSearch = () => {
-  paginationData.currentPage === 1 ? getTableData() : (paginationData.currentPage = 1)
-}
 const resetSearch = () => {
   searchFormRef.value?.resetFields()
-  handleSearch()
+  getTableData()
 }
-//#endregion
 
-/** 监听分页参数的变化 */
-watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
+onMounted(() => {
+  getTableData()
+})
+
+const updateFileRow: GetContainerData = { id: '', name: 'afsd', image: '123', imageID: '', command: '', sstate: '', createdTime: '' }
+//#endregion
 </script>
 
 <template>
   <div class="app-container">
-    <el-card v-loading="loading" shadow="never" class="search-wrapper">
-      <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="username" label="用户名">
-          <el-input v-model="searchData.username" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item prop="phone" label="手机号">
-          <el-input v-model="searchData.phone" placeholder="请输入" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">查询</el-button>
-          <el-button :icon="Refresh" @click="resetSearch">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
     <el-card v-loading="loading" shadow="never">
       <div class="toolbar-wrapper">
         <div>
@@ -115,9 +115,6 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
           <el-button type="danger" :icon="Delete">删除</el-button>
         </div>
         <div>
-          <el-tooltip content="下载">
-            <el-button type="primary" :icon="Download" circle />
-          </el-tooltip>
           <el-tooltip content="刷新当前页">
             <el-button type="primary" :icon="RefreshRight" circle @click="getTableData" />
           </el-tooltip>
@@ -127,29 +124,24 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         <el-table :data="tableData">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="名称" align="center" />
-          <el-table-column prop="createTime" label="创建时间" align="center" />
-          <el-table-column fixed="right" label="操作" width="150" align="center">
+          <el-table-column prop="createdTime" label="创建时间" align="center" />
+          <el-table-column fixed="right" label="操作" width="400" align="center">
             <template #default="scope">
-              <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">修改</el-button>
+              <el-button type="primary" text bg size="small" @click="handleDelete(scope.row)">编辑</el-button>
+              <el-button type="primary" text bg size="small" @click="handleLog(scope.row)">日志</el-button>
+              <el-button type="primary" text bg size="small" @click="handleStart(scope.row)" v-show="scope.row.status!=='RUNNING'">启动</el-button>
+              <el-button type="primary" text bg size="small" @click="handleStop(scope.row)" v-show="scope.row.status==='RUNNING'">停止</el-button>
+              <el-button type="primary" text bg size="small" @click="handleRestart(scope.row)" v-show="scope.row.status==='RUNNING'">重启</el-button>
+              <el-button type="warning" text bg size="small" @click="handleDelete(scope.row)">更新镜像</el-button>
               <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
-      <div class="pager-wrapper">
-        <el-pagination
-          background
-          :layout="paginationData.layout"
-          :page-sizes="paginationData.pageSizes"
-          :total="paginationData.total"
-          :page-size="paginationData.pageSize"
-          :currentPage="paginationData.currentPage"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
     </el-card>
-    <Create :visible="createVisible" @cancel="createVisible = false" @ok="handleCreate"></Create>
+    <Create :visible="createVisible" @cancel="createVisible=false" @ok="handleCreate"></Create>
+    <UpdateFile v-model="updateFileRow" :visible="updateImageVisible" @cancel="updateImageVisible=false" @ok="handleUpdateImage"></UpdateFile>
+    <Log :visible="logContainerVisible" @ok="logContainerVisible=false"></Log>
   </div>
 </template>
 
@@ -169,10 +161,5 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
 
 .table-wrapper {
   margin-bottom: 20px;
-}
-
-.pager-wrapper {
-  display: flex;
-  justify-content: flex-end;
 }
 </style>

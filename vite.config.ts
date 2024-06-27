@@ -34,8 +34,8 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       strictPort: false,
       /** 接口代理 */
       proxy: {
-        "/api/v1": {
-          target: "http://localhost:9090/yxgl-api",
+        "/docker": {
+          target: "http://localhost:9090",
           ws: true,
           /** 是否允许跨域 */
           changeOrigin: true
