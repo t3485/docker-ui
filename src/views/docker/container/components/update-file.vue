@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CreateOrUpdateContainerData, type GetContainerData, type UpdateContainerImageData, type GetImageData } from "@/api/docker/types/docker";
+import { type CreateOrUpdateContainerData, type ContainerData, type UpdateContainerImageData, type ImageData } from "@/api/docker/types/docker";
 import { ref, onMounted } from "vue"
 import { UploadRequestOptions, type FormRules } from "element-plus"
 
@@ -7,7 +7,7 @@ interface Props {
   visible?: boolean,
 }
 
-const model = defineModel<GetContainerData>({ required: true })
+const model = defineModel<ContainerData>({ required: true })
 const props = withDefaults(defineProps<Props>(), {
   visible: true
 })

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from "vue"
-import { getContainerDataApi, createContainerDataApi, updateContainerDataApi, deleteContainerDataApi, updateContainerImageApi, startContainerDataApi, stopContainerDataApi, restartContainerDataApi, logContainerDataApi } from "@/api/docker"
-import { type GetContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
+import { getContainerDataApi, createContainerDataApi, updateContainerDataApi, deleteContainerDataApi, updateContainerImageApi, startContainerDataApi, stopContainerDataApi, restartContainerDataApi } from "@/api/docker"
+import { type ContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
 import { type FormInstance, ElMessage, ElMessageBox } from "element-plus"
 import { Search, Refresh, CirclePlus, Delete, Download, RefreshRight } from "@element-plus/icons-vue"
 import Create from "./components/create.vue"
@@ -34,7 +34,7 @@ const handleUpdateImage = (data: CreateOrUpdateContainerData) => {
   })
 }
 
-const handleDelete = (row: GetContainerData) => {
+const handleDelete = (row: ContainerData) => {
   ElMessageBox.confirm(`正在删除：${row.name}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -47,21 +47,21 @@ const handleDelete = (row: GetContainerData) => {
   })
 }
 
-const handleStart = (row: GetContainerData) => {
+const handleStart = (row: ContainerData) => {
   startContainerDataApi(row.name).then(() => {
     ElMessage.success("启动成功")
     getTableData()
   })
 }
 
-const handleStop = (row: GetContainerData) => {
+const handleStop = (row: ContainerData) => {
   stopContainerDataApi(row.name).then(() => {
     ElMessage.success("停止成功")
     getTableData()
   })
 }
 
-const handleRestart = (row: GetContainerData) => {
+const handleRestart = (row: ContainerData) => {
   restartContainerDataApi(row.name).then(() => {
     ElMessage.success("重启成功")
     getTableData()
@@ -69,15 +69,13 @@ const handleRestart = (row: GetContainerData) => {
 }
 
 const logContainerVisible = ref<boolean>(false)
-const handleLog = (row: GetContainerData) => {
-  logContainerDataApi(row.name, true, false).then(() => {
-    logContainerVisible.value = true
-  })
+const handleLog = (row: ContainerData) => {
+  logContainerVisible.value = true
+  updateFileRow.value = row
 }
 
-
 //#region 查
-const tableData = ref<GetContainerData[]>([])
+const tableData = ref<ContainerData[]>([])
 const searchFormRef = ref<FormInstance | null>(null)
 
 const getTableData = () => {
@@ -102,7 +100,7 @@ onMounted(() => {
   getTableData()
 })
 
-const updateFileRow: GetContainerData = { id: '', name: 'afsd', image: '123', imageID: '', command: '', sstate: '', createdTime: '' }
+const updateFileRow = ref<ContainerData>({ id: '', name: 'afsd', image: '123', imageID: '', command: '', sstate: '', createdTime: '' })
 //#endregion
 </script>
 
@@ -124,6 +122,7 @@ const updateFileRow: GetContainerData = { id: '', name: 'afsd', image: '123', im
         <el-table :data="tableData">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column prop="name" label="名称" align="center" />
+          <el-table-column prop="statusLabel" label="状态" align="center" />
           <el-table-column prop="createdTime" label="创建时间" align="center" />
           <el-table-column fixed="right" label="操作" width="400" align="center">
             <template #default="scope">
@@ -141,7 +140,7 @@ const updateFileRow: GetContainerData = { id: '', name: 'afsd', image: '123', im
     </el-card>
     <Create :visible="createVisible" @cancel="createVisible=false" @ok="handleCreate"></Create>
     <UpdateFile v-model="updateFileRow" :visible="updateImageVisible" @cancel="updateImageVisible=false" @ok="handleUpdateImage"></UpdateFile>
-    <Log :visible="logContainerVisible" @ok="logContainerVisible=false"></Log>
+    <Log v-model="updateFileRow" :visible="logContainerVisible" @ok="logContainerVisible=false"></Log>
   </div>
 </template>
 

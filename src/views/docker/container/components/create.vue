@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CreateOrUpdateContainerData, type GetImageData } from "@/api/docker/types/docker";
+import { type CreateOrUpdateContainerData, type ImageData } from "@/api/docker/types/docker";
 import { getImageDataApi } from "@/api/docker"
 import { ref, watch } from "vue"
 import { type FormRules } from "element-plus"
@@ -17,7 +17,7 @@ const emit = defineEmits<{
   (e: 'ok', value: CreateOrUpdateContainerData): void
 }>()
 
-const imageData = ref<GetImageData[]>([])
+const imageData = ref<ImageData[]>([])
 
 const formData = ref<CreateOrUpdateContainerData>({
   name: "",

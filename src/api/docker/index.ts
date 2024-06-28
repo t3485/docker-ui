@@ -1,5 +1,6 @@
 import { request } from "@/utils/service"
 import type * as Table from "./types/docker"
+import { ContainerLogData } from "./types/docker"
 
 export function getContainerDataApi() {
   return request<Table.GetContainerResponseData>({
@@ -47,7 +48,7 @@ export function restartContainerDataApi(id: string) {
 }
 
 export function logContainerDataApi(id: string, stdout: boolean, stderr: boolean) {
-  return request({
+  return request<ApiResponseData<ContainerLogData[]>>({
     url: `container/${id}/log`,
     method: "get",
     params: { stdout, stderr }
