@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'cancel'): void
-  (e: 'ok', value: CreateOrUpdateContainerData): void
+  (e: 'ok', value: UpdateContainerImageData): void
 }>()
 
 const formData = ref<UpdateContainerImageData>({
@@ -29,13 +29,20 @@ const fileChange = (data: UploadRequestOptions ) => {
 }
 
 const handleClose = () => {
+  reset()
   emit("cancel")
 }
 
-onMounted(() => {
+const handleOk = () => {
   formData.value.name = model.value.name
-})
+  const val = Object.assign({}, formData.value)
+  reset()
+  emit('ok', val)
+}
 
+const reset = () => {
+  formData.value = { name: "", file: undefined }
+}
 
 </script>
 
@@ -66,7 +73,7 @@ onMounted(() => {
     </el-form>
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="fileChange">确认</el-button>
+      <el-button type="primary" @click="handleOk">确认</el-button>
     </template>
   </el-dialog>
 

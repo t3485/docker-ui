@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const log = ref<ContainerLogData[]>([])
 const loading = ref(false)
-const searchForm = ref<GetContainerLog>({})
+const searchForm = ref<GetContainerLog>({ stderr: true, stdout: true })
 
 const emit = defineEmits<{
   (e: 'ok'): void
@@ -27,15 +27,15 @@ const handleClose = () => {
 
 const handleLog = () => {
   loading.value = true
-  logContainerDataApi(model.value.name, true, false).then(({ data }) => {
+  logContainerDataApi(model.value.name, searchForm.value.stdout, searchForm.value.stderr).then(({ data }) => {
     log.value = data
     loading.value = false
   })
 }
 
 const resetSearch = () => {
-  searchForm.value.stderr = undefined
-  searchForm.value.stdout = undefined
+  searchForm.value.stderr = true
+  searchForm.value.stdout = true
 }
 
 watch([() => model, () => props.visible], () => {

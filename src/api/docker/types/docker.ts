@@ -39,8 +39,8 @@ export interface UpdateContainerImageData {
 }
 
 export interface GetContainerLog {
-  stderr?: boolean
-  stdout?: boolean
+  stderr: boolean
+  stdout: boolean
 }
 
 export interface ContainerLogData {

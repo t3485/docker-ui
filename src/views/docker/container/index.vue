@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from "vue"
 import { getContainerDataApi, createContainerDataApi, updateContainerDataApi, deleteContainerDataApi, updateContainerImageApi, startContainerDataApi, stopContainerDataApi, restartContainerDataApi } from "@/api/docker"
-import { type ContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
+import { GetContainerResponseData, UpdateContainerImageData, type ContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
 import { type FormInstance, ElMessage, ElMessageBox } from "element-plus"
 import { Search, Refresh, CirclePlus, Delete, Download, RefreshRight } from "@element-plus/icons-vue"
 import Create from "./components/create.vue"
@@ -11,7 +11,7 @@ import Log from "./components/log.vue"
 const loading = ref<boolean>(false)
 
 const createVisible = ref<boolean>(false)
-const handleCreate = (data: CreateOrUpdateContainerData) => {
+const createContainer = (data: CreateOrUpdateContainerData) => {
   createContainerDataApi(data).then(() => {
     ElMessage.success("操作成功")
     createVisible.value = false
@@ -23,10 +23,14 @@ const handleCreate = (data: CreateOrUpdateContainerData) => {
 }
 
 const updateImageVisible = ref<boolean>(false)
-const handleUpdateImage = (data: CreateOrUpdateContainerData) => {
-  updateContainerDataApi(data).then(() => {
+const handleUpdateImage = (row: ContainerData) => {
+  updateImageVisible.value = false
+  operatorRow.value = row
+}
+const updateImage = (data: UpdateContainerImageData) => {
+  updateContainerImageApi(data).then(() => {
     ElMessage.success("操作成功")
-    createVisible.value = false
+    updateImageVisible.value = false
     getTableData()
   })
   .finally(() => {
@@ -71,7 +75,7 @@ const handleRestart = (row: ContainerData) => {
 const logContainerVisible = ref<boolean>(false)
 const handleLog = (row: ContainerData) => {
   logContainerVisible.value = true
-  updateFileRow.value = row
+  operatorRow.value = row
 }
 
 //#region 查
@@ -100,7 +104,7 @@ onMounted(() => {
   getTableData()
 })
 
-const updateFileRow = ref<ContainerData>({ id: '', name: 'afsd', image: '123', imageID: '', command: '', sstate: '', createdTime: '' })
+const operatorRow = ref<ContainerData>({ id: '', name: 'afsd', image: '123', imageID: '', command: '', sstate: '', createdTime: '' })
 //#endregion
 </script>
 
@@ -110,7 +114,6 @@ const updateFileRow = ref<ContainerData>({ id: '', name: 'afsd', image: '123', i
       <div class="toolbar-wrapper">
         <div>
           <el-button type="primary" :icon="CirclePlus" @click="createVisible = true">新增</el-button>
-          <el-button type="danger" :icon="Delete">删除</el-button>
         </div>
         <div>
           <el-tooltip content="刷新当前页">
@@ -131,16 +134,16 @@ const updateFileRow = ref<ContainerData>({ id: '', name: 'afsd', image: '123', i
               <el-button type="primary" text bg size="small" @click="handleStart(scope.row)" v-show="scope.row.status!=='RUNNING'">启动</el-button>
               <el-button type="primary" text bg size="small" @click="handleStop(scope.row)" v-show="scope.row.status==='RUNNING'">停止</el-button>
               <el-button type="primary" text bg size="small" @click="handleRestart(scope.row)" v-show="scope.row.status==='RUNNING'">重启</el-button>
-              <el-button type="warning" text bg size="small" @click="handleDelete(scope.row)">更新镜像</el-button>
+              <el-button type="warning" text bg size="small" @click="handleUpdateImage(scope.row)">更新镜像</el-button>
               <el-button type="danger" text bg size="small" @click="handleDelete(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
     </el-card>
-    <Create :visible="createVisible" @cancel="createVisible=false" @ok="handleCreate"></Create>
-    <UpdateFile v-model="updateFileRow" :visible="updateImageVisible" @cancel="updateImageVisible=false" @ok="handleUpdateImage"></UpdateFile>
-    <Log v-model="updateFileRow" :visible="logContainerVisible" @ok="logContainerVisible=false"></Log>
+    <Create :visible="createVisible" @cancel="createVisible=false" @ok="createContainer"></Create>
+    <UpdateFile v-model="operatorRow" :visible="updateImageVisible" @cancel="updateImageVisible=false" @ok="updateImage"></UpdateFile>
+    <Log v-model="operatorRow" :visible="logContainerVisible" @ok="logContainerVisible=false"></Log>
   </div>
 </template>
 

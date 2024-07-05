@@ -73,7 +73,7 @@ export function updateContainerImageApi(data: Table.UpdateContainerImageData) {
   formData.append("file", new Blob([data.file], { type: data.file.type }))
 
   return request({
-    url: "container/updateImage/" + data.name,
+    url: "container/update/" + data.name,
     method: "post",
     headers: {
       'Content-Type': 'multipart/form-data'
