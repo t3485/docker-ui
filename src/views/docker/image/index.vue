@@ -1,51 +1,27 @@
 <script lang="ts" setup>
 import { reactive, ref, watch } from "vue"
 import { getImageDataApi, createImageDataApi, updateImageDataApi, deleteImageDataApi } from "@/api/docker"
-import { type ImageData, type CreateOrUpdateImageData } from "@/api/docker/types/docker"
+import { type ImageData, type CreateOrUpdateImageDataByFile, CreateImageDataByFile } from "@/api/docker/types/docker"
 import { type FormInstance, type FormRules, ElMessage, ElMessageBox } from "element-plus"
 import { Search, Refresh, CirclePlus, Delete, Download, RefreshRight } from "@element-plus/icons-vue"
 import { usePagination } from "@/hooks/usePagination"
 import { cloneDeep } from "lodash-es"
+import UpdateFile from "./components/update-file.vue"
+import Create from "./components/create.vue"
 
 const loading = ref<boolean>(false)
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
 
-//#region 增
-const DEFAULT_FORM_DATA: CreateOrUpdateImageData = {
-  id: undefined,
-  name: ""
-}
-const dialogVisible = ref<boolean>(false)
-const formRef = ref<FormInstance | null>(null)
-const formData = ref<CreateOrUpdateImageData>(cloneDeep(DEFAULT_FORM_DATA))
-const formRules: FormRules<CreateOrUpdateImageData> = {
-  name: [{ required: true, trigger: "blur", message: "请输入用户名" }]
-}
-const handleCreateOrUpdate = () => {
-  formRef.value?.validate((valid: boolean, fields) => {
-    if (!valid) return console.error("表单校验不通过", fields)
-    loading.value = true
-    const api = formData.value.id === undefined ? createImageDataApi : updateImageDataApi
-    api(formData.value)
-      .then(() => {
-        ElMessage.success("操作成功")
-        dialogVisible.value = false
-        getTableData()
-      })
-      .finally(() => {
-        loading.value = false
-      })
-  })
-}
-const resetForm = () => {
-  formRef.value?.clearValidate()
-  formData.value = cloneDeep(DEFAULT_FORM_DATA)
-}
-//#endregion
+const operatorRow = ref<ImageData>({
+  id: '',
+  name: 'afsd',
+  size: 0,
+  createdTime: ""
+})
 
 //#region 删
 const handleDelete = (row: ImageData) => {
-  ElMessageBox.confirm(`正在删除用户：${row.name}，确认删除？`, "提示", {
+  ElMessageBox.confirm(`正在删除镜像：${row.name}，确认删除？`, "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
@@ -58,10 +34,32 @@ const handleDelete = (row: ImageData) => {
 }
 //#endregion
 
+//#region 增
+const createImageVisible = ref<boolean>(false)
+const handleCreate = () => {
+  createImageVisible.value = true
+}
+const createImage = (data: CreateImageDataByFile) => {
+  createImageDataApi(data).then(() => {
+    ElMessage.success("操作成功")
+    createImageVisible.value = false
+    getTableData()
+  })
+}
+//#endregion
+
 //#region 改
+const updateImageVisible = ref<boolean>(false)
 const handleUpdate = (row: ImageData) => {
-  dialogVisible.value = true
-  formData.value = cloneDeep(row)
+  operatorRow.value = row
+  updateImageVisible.value = true
+}
+const updateImage = (data: CreateOrUpdateImageDataByFile) => {
+  updateImageDataApi(data).then(() => {
+    ElMessage.success("操作成功")
+    updateImageVisible.value = false
+    getTableData()
+  })
 }
 //#endregion
 
@@ -113,7 +111,8 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     <el-card v-loading="loading" shadow="never">
       <div class="toolbar-wrapper">
         <div>
-          <el-button type="primary" :icon="CirclePlus" @click="dialogVisible = true">新增</el-button>
+          <el-button type="primary" :icon="CirclePlus" @click="handleCreate">创建</el-button>
+          <el-button type="primary" :icon="Delete">清理</el-button>
         </div>
         <div>
           <el-tooltip content="刷新当前页">
@@ -148,23 +147,8 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
         />
       </div>
     </el-card>
-    <!-- 新增/修改 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="formData.id === undefined ? '新增用户' : '修改用户'"
-      @closed="resetForm"
-      width="30%"
-    >
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="left">
-        <el-form-item prop="username" label="用户名">
-          <el-input v-model="formData.name" placeholder="请输入" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateOrUpdate" :loading="loading">确认</el-button>
-      </template>
-    </el-dialog>
+    <UpdateFile v-model="operatorRow" :visible="updateImageVisible" @cancel="updateImageVisible=false" @ok="updateImage" />
+    <Create :visible="createImageVisible" @cancel="createImageVisible=false" @ok="createImage" />
   </div>
 </template>
 

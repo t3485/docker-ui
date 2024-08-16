@@ -73,7 +73,7 @@ export function updateContainerImageApi(data: Table.UpdateContainerImageData) {
   formData.append("file", new Blob([data.file], { type: data.file.type }))
 
   return request({
-    url: "container/update/" + data.name,
+    url: "container/updateImage/" + data.id,
     method: "post",
     headers: {
       'Content-Type': 'multipart/form-data'
@@ -90,10 +90,13 @@ export function getImageDataApi() {
 }
 
 /** 增 */
-export function createImageDataApi(data: Table.CreateOrUpdateImageData) {
+export function createImageDataApi(data: Table.CreateImageDataByFile) {
   return request({
-    url: "image/create",
+    url: "image/createByFile",
     method: "post",
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
     data
   })
 }
@@ -107,10 +110,13 @@ export function deleteImageDataApi(id: string) {
 }
 
 /** 改 */
-export function updateImageDataApi(data: Table.CreateOrUpdateImageData) {
+export function updateImageDataApi(data: Table.CreateOrUpdateImageDataByFile) {
   return request({
-    url: "image/update/" + data.id,
+    url: "image/updateByFile/" + data.id,
     method: "post",
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
     data
   })
 }

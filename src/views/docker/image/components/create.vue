@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type CreateOrUpdateContainerData, type ContainerData, type UpdateContainerImageData, type ImageData } from "@/api/docker/types/docker";
+import { type ImageData, CreateImageDataByFile, CreateOrUpdateImageDataByFile } from "@/api/docker/types/docker";
 import { ref, onMounted } from "vue"
 import { UploadFile, UploadRequestOptions, type FormRules } from "element-plus"
 
@@ -7,27 +7,31 @@ interface Props {
   visible?: boolean,
 }
 
-const model = defineModel<ContainerData>({ required: true })
 const props = withDefaults(defineProps<Props>(), {
   visible: true
 })
 
 const emit = defineEmits<{
   (e: 'cancel'): void
-  (e: 'ok', value: UpdateContainerImageData): void
+  (e: 'ok', value: CreateImageDataByFile): void
 }>()
 
-const formData = ref<UpdateContainerImageData>({
-  id: "",
-  file: undefined
+const formData = ref<CreateImageDataByFile>({
+  name: "",
+  file: undefined,
+  dockerfile: undefined
 })
-const formRules: FormRules<UpdateContainerImageData> = {
+const formRules: FormRules<CreateImageDataByFile> = {
   // file: [{ required: true, trigger: "blur", message: "请输入名称" }]
 }
 const fileChange = (data: UploadRequestOptions ) => {
   formData.value.file = data.file
 }
+const dockerfileChange = (data: UploadRequestOptions ) => {
+  formData.value.dockerfile = data.file
+}
 const filelist = ref<UploadFile[]>([])
+const dockerfilelist = ref<UploadFile[]>([])
 
 const handleClose = () => {
   reset()
@@ -35,32 +39,45 @@ const handleClose = () => {
 }
 
 const handleOk = () => {
-  formData.value.id = model.value.id
   const val = Object.assign({}, formData.value)
   reset()
   emit('ok', val)
 }
 
 const reset = () => {
-  formData.value = { id: "", file: undefined }
+  formData.value = { name: "", file: undefined }
   filelist.value = []
+  dockerfilelist.value = []
 }
 
 </script>
 
 <template>
-  <el-dialog v-model="props.visible" title="更新容器" width="30%" @closed="handleClose">
+  <el-dialog v-model="props.visible" title="创建镜像" width="30%" @closed="handleClose">
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
       <el-form-item prop="name" label="名称：">
-        <el-input v-model="model.name" size="large" disabled/>
+        <el-input v-model="formData.name" size="large" />
       </el-form-item>
-      <el-form-item prop="image" label="镜像：">
+      <!-- <el-form-item prop="image" label="基础镜像：">
         <el-select v-model="model.image" size="large" disabled>
           <el-option :label="model.image" :value="model.image"/>
         </el-select>
-      </el-form-item>
-      <el-form-item prop="file" label="文件：">
+      </el-form-item> -->
+      <el-form-item prop="file" label="运行文件：">
         <el-upload drag :http-request="fileChange" :limit="1" v-model:file-list="filelist">
+          <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+          <div class="el-upload__text">
+            Drop file here or <em>click to upload</em>
+          </div>
+          <template #tip>
+            <div class="el-upload__tip">
+              jpg/png files with a size less than 300mb
+            </div>
+          </template>
+        </el-upload>
+      </el-form-item>
+      <el-form-item prop="file" label="dockerfile：">
+        <el-upload drag :http-request="dockerfileChange" :limit="1" v-model:file-list="dockerfilelist">
           <el-icon class="el-icon--upload"><upload-filled /></el-icon>
           <div class="el-upload__text">
             Drop file here or <em>click to upload</em>

@@ -5,6 +5,8 @@ export interface CreateOrUpdateContainerData {
   name: string
   image: string
   network?: string
+  hostExpose?: number
+  containerExpose?: number
 }
 
 export interface ContainerData {
@@ -19,9 +21,15 @@ export interface ContainerData {
 
 export type GetContainerResponseData = ApiResponseData<ContainerData[]>
 
-export interface CreateOrUpdateImageData {
-  id?: string
+export interface CreateImageDataByFile {
   name: string
+  file?: File
+  dockerfile?: File
+}
+
+export interface CreateOrUpdateImageDataByFile {
+  id: string
+  file?: File
 }
 
 export interface ImageData {
@@ -34,7 +42,7 @@ export interface ImageData {
 export type GetImageResponseData = ApiResponseData<ImageData[]>
 
 export interface UpdateContainerImageData {
-  name: string
+  id: string
   file?: File
 }
 

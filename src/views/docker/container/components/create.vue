@@ -30,7 +30,21 @@ const formRules: FormRules<CreateOrUpdateContainerData> = {
 }
 
 const handleClose = () => {
+  clear()
   emit("cancel")
+}
+
+const handleOk = () => {
+  emit('ok', formData.value)
+  clear()
+}
+
+const clear = () => {
+  formData.value = {
+    name: "",
+    image: "",
+    network: "bridge"
+  }
 }
 
 watch(() => props.visible, (value, oldValue) => {
@@ -51,7 +65,7 @@ watch(() => props.visible, (value, oldValue) => {
       </el-form-item>
       <el-form-item prop="image" label="镜像：">
         <el-select v-model="formData.image" size="large">
-          <el-option v-for="item in imageData" :key="item.name" :label="item.name" :value="item.name"/>
+          <el-option v-for="item in imageData" :key="item.id" :label="item.name" :value="item.id"/>
         </el-select>
       </el-form-item>
       <el-form-item prop="network" label="网络：">
@@ -62,17 +76,17 @@ watch(() => props.visible, (value, oldValue) => {
       </el-form-item>
       <el-form-item prop="port" label="端口绑定：" v-show="formData.network !== 'host'">
         <el-col :span="11">
-          <el-input size="large" placeholder="主机"/>
+          <el-input size="large" placeholder="主机" v-model="formData.hostExpose"/>
         </el-col>
         <el-col :span="2" class="text-center" >-</el-col>
         <el-col :span="11">
-          <el-input size="large" placeholder="容器"/>
+          <el-input size="large" placeholder="容器" v-model="formData.containerExpose"/>
         </el-col>
       </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="emit('ok', formData)">确认</el-button>
+      <el-button type="primary" @click="handleOk">确认</el-button>
     </template>
   </el-dialog>
 

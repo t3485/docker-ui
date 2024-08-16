@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from "vue"
 import { getContainerDataApi, createContainerDataApi, updateContainerDataApi, deleteContainerDataApi, updateContainerImageApi, startContainerDataApi, stopContainerDataApi, restartContainerDataApi } from "@/api/docker"
-import { GetContainerResponseData, UpdateContainerImageData, type ContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
+import { UpdateContainerImageData, type ContainerData, type CreateOrUpdateContainerData } from "@/api/docker/types/docker"
 import { type FormInstance, ElMessage, ElMessageBox } from "element-plus"
 import { Search, Refresh, CirclePlus, Delete, Download, RefreshRight } from "@element-plus/icons-vue"
 import Create from "./components/create.vue"
@@ -24,7 +24,7 @@ const createContainer = (data: CreateOrUpdateContainerData) => {
 
 const updateImageVisible = ref<boolean>(false)
 const handleUpdateImage = (row: ContainerData) => {
-  updateImageVisible.value = false
+  updateImageVisible.value = true
   operatorRow.value = row
 }
 const updateImage = (data: UpdateContainerImageData) => {
@@ -94,10 +94,6 @@ const getTableData = () => {
     .finally(() => {
       loading.value = false
     })
-}
-const resetSearch = () => {
-  searchFormRef.value?.resetFields()
-  getTableData()
 }
 
 onMounted(() => {
