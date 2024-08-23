@@ -36,7 +36,7 @@ const handleClose = () => {
 
 <template>
   <el-dialog v-model="props.visible" title="创建容器" width="30%" @close="handleClose">
-    <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="center">
+    <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
       <el-form-item prop="name" label="名称：">
         <el-input v-model="formData.name" size="large"/>
       </el-form-item>

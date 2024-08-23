@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type CreateOrUpdateContainerData, type ContainerData, type UpdateContainerImageData, type ImageData } from "@/api/docker/types/docker";
 import { ref, onMounted } from "vue"
-import { UploadFile, UploadRequestOptions, type FormRules } from "element-plus"
+import { UploadFile, UploadRequestHandler, UploadRequestOptions, type FormRules } from "element-plus"
 
 interface Props {
   visible?: boolean,
@@ -26,6 +26,9 @@ const formRules: FormRules<UpdateContainerImageData> = {
 }
 const fileChange = (data: UploadRequestOptions ) => {
   formData.value.file = data.file
+  return new Promise(function (resolve, reject) {
+    
+  })
 }
 const filelist = ref<UploadFile[]>([])
 

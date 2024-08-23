@@ -26,9 +26,15 @@ const formRules: FormRules<CreateImageDataByFile> = {
 }
 const fileChange = (data: UploadRequestOptions ) => {
   formData.value.file = data.file
+  return new Promise(function (resolve, reject) {
+    
+  })
 }
 const dockerfileChange = (data: UploadRequestOptions ) => {
   formData.value.dockerfile = data.file
+  return new Promise(function (resolve, reject) {
+    
+  })
 }
 const filelist = ref<UploadFile[]>([])
 const dockerfilelist = ref<UploadFile[]>([])

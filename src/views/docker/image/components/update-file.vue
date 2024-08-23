@@ -26,6 +26,9 @@ const formRules: FormRules<CreateOrUpdateImageDataByFile> = {
 }
 const fileChange = (data: UploadRequestOptions ) => {
   formData.value.file = data.file
+  return new Promise(function (resolve, reject) {
+    
+  })
 }
 const filelist = ref<UploadFile[]>([])
 
